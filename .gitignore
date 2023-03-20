@@ -1,0 +1,10 @@
+venv/
+__pycache__
+.idea/
+.env.*
+dependencies.txt
+src/tb_*
+support/
+outputs/
+inputs/
+logs/
