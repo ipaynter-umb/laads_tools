@@ -57,6 +57,33 @@ def get_laads_hdf5(h5_request, session=get_laads_session(), hash_to_check=None):
     return (h5_url, parse_laads_get(r, h5_url))
 
 
+# Get a HDF4 file from LAADS
+def get_laads_hdf4(h4_request, session=get_laads_session(), hash_to_check=None):
+    # If a tuple of h5 url and a hash was supplied
+    if isinstance(h4_request, tuple):
+        # Break up the components
+        h4_url = h4_request[0]
+        hash_to_check = h4_request[1]
+    else:
+        h4_url = h4_request
+    # Ensure the h4_url ends in .hdf
+    if h4_url.split('.')[-1] != 'hdf':
+        h4_url += '.hdf'
+    # Hash function
+    hash_func = None
+    # If a hash was provided
+    if hash_to_check:
+        # Reference the hash function
+        hash_func = t_requests.validate_request_md5
+    # Ask nicely for the HDF5 file, checking the hash
+    r = t_requests.ask_nicely(session,
+                              h4_url,
+                              hash_func=hash_func,
+                              hash_to_check=hash_to_check)
+    # Return a tuple of the URL and a parse of the get attempt
+    return (h4_url, parse_laads_get(r, h4_url))
+
+
 # Parse the result of getting a file from LAADS
 def parse_laads_get(r, url):
     # If we got a response
