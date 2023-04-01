@@ -23,7 +23,7 @@ def listify(target):
 
 
 # Multithread a function for a list of work
-def multithread(mt_func, list_of_work, as_completed_func=None, as_completed_yield=False, max_workers=4):
+def multithread(mt_func, list_of_work, as_completed_func=None, as_completed_yield=False, max_workers=5):
     # Instantiate thread pool
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit the work using a list structure to capture the results

@@ -6,7 +6,7 @@ from pathlib import Path
 
 def spinup():
 
-    # Load environment variables from .env and .env.daacs file
+    # Load environment variables from .env and .env.secrets file
     load_dotenv()
     load_dotenv('.env.secrets')
     # Establish other environment variables with relative paths

@@ -353,7 +353,7 @@ class LAADSDataSet:
                f'/{filename}'
 
     # Download the whole catalog
-    def download_catalog(self, from_scratch=False):
+    def download_catalog(self, from_scratch=False, chunk_size=20):
         # Directory to download to
         download_dir = Path(environ['inputs_dir'], self.name)
         # If there is a directory to store the files
@@ -372,20 +372,38 @@ class LAADSDataSet:
         download_dict = self.get_download_record()
         # List of work for multithreading
         list_of_work = []
+        # Empty list for chunk of work
+        chunk = []
+        # File count
+        file_count = 0
         # For each filename
         for filename in self.by_filename.keys():
             # If the file is already in the download dictionary
             if filename in download_dict.keys():
                 # If the status is anything other than True
                 if not download_dict[filename]:
-                    # Add tuple of URL and hash to list of work
-                    list_of_work.append((self.get_url_from_filename(filename), self.by_filename[filename].hash))
+                    # Add tuple of URL and hash to the chunk
+                    chunk.append((self.get_url_from_filename(filename), self.by_filename[filename].hash))
             # Otherwise (not in download dictionary)
             else:
-                # Add URL and hash to list of work
-                list_of_work.append((self.get_url_from_filename(filename), self.by_filename[filename].hash))
+                # Add tuple of URL and hash to the chunk
+                chunk.append((self.get_url_from_filename(filename), self.by_filename[filename].hash))
+            # If the chunk has reach the max size
+            if len(chunk) == chunk_size:
+                # Add to file count
+                file_count += chunk_size
+                # Append chunk to the list of work
+                list_of_work.append(chunk)
+                # Reinitialize the chunk
+                chunk = []
+        # If there are any files in the final chunk
+        if len(chunk) > 0:
+            # Add to file count
+            file_count += len(chunk)
+            # Append chunk to the list of work
+            list_of_work.append(chunk)
         # Log information about the list of work
-        logging.info(f'Sending {len(list_of_work)} files to multithreaded download.')
+        logging.info(f'Sending {file_count} files in {len(list_of_work)} chunks to multithreaded download.')
         # Mark start time
         stime = time()
         # Get datetime string
@@ -404,31 +422,35 @@ class LAADSDataSet:
         if file_suffix == 'hdf':
             # Swap the multithread function for HDF4 retrieval
             mt_func = t_laads.get_laads_hdf4
-        # Multithread
-        futures = t_misc.multithread(mt_func, list_of_work, as_completed_yield=True)
-        # For each future as it is completed
-        for future in as_completed(futures):
-            # Split out the file and filename
-            file = future.result()[1].content
-            filename = future.result()[0].split('/')[-1]
-            # If we did not get the file
-            if not file:
-                # Write a line to the download log
-                of.write(f'{filename} False\n')
-            # Otherwise
-            else:
-                # Get the write path for the file
-                write_path = Path(environ['inputs_dir'], self.name, filename)
-                # Write the file locally
-                write_result = t_misc.write_bytes(file, write_path)
-                # If the result was successful
-                if write_result:
-                    # Write a line to the download log
-                    of.write(f'{filename} True\n')
-                # Otherwise
-                else:
+        # While there are chunks to process
+        while list_of_work:
+            # Pop a chunk to process
+            current_chunk = list_of_work.pop()
+            # Multithread
+            futures = t_misc.multithread(mt_func, current_chunk, as_completed_yield=True)
+            # For each future as it is completed
+            for future in as_completed(futures):
+                # Split out the file and filename
+                file = future.result()[1].content
+                filename = future.result()[0].split('/')[-1]
+                # If we did not get the file
+                if not file:
                     # Write a line to the download log
                     of.write(f'{filename} False\n')
+                # Otherwise
+                else:
+                    # Get the write path for the file
+                    write_path = Path(environ['inputs_dir'], self.name, filename)
+                    # Write the file locally
+                    write_result = t_misc.write_bytes(file, write_path)
+                    # If the result was successful
+                    if write_result:
+                        # Write a line to the download log
+                        of.write(f'{filename} True\n')
+                    # Otherwise
+                    else:
+                        # Write a line to the download log
+                        of.write(f'{filename} False\n')
         # Close the log file
         of.close()
         # Report on the overall time taken
