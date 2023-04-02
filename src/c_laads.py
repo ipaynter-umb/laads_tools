@@ -431,10 +431,14 @@ class LAADSDataSet:
             # For each future as it is completed
             for future in as_completed(futures):
                 # Split out the file and filename
-                file = future.result()[1].content
+                file = future.result()[1]
                 filename = future.result()[0].split('/')[-1]
                 # If we did not get the file
                 if not file:
+                    # Write a line to the download log
+                    of.write(f'{filename} False\n')
+                # Otherwise, if we did not get content
+                elif not file.content:
                     # Write a line to the download log
                     of.write(f'{filename} False\n')
                 # Otherwise
@@ -442,7 +446,7 @@ class LAADSDataSet:
                     # Get the write path for the file
                     write_path = Path(environ['inputs_dir'], self.name, filename)
                     # Write the file locally
-                    write_result = t_misc.write_bytes(file, write_path)
+                    write_result = t_misc.write_bytes(file.content, write_path)
                     # If the result was successful
                     if write_result:
                         # Write a line to the download log
