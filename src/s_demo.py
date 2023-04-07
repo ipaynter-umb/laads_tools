@@ -24,7 +24,7 @@ dataset = c_laads.LAADSDataSet(dataset_name,
                                                         day=1),
                                end_date=datetime.date(year=2019,
                                                       month=6,
-                                                      day=10),
+                                                      day=2),
                                include='h11v07')
 
 # The first time you call a dataset by name it will make a specification file in laads_tools\support.
