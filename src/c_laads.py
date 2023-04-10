@@ -491,6 +491,54 @@ class LAADSDataSet:
         # Return the download record
         return download_dict
 
+    def print_download_report(self, print_failed=False, print_not_tried=False):
+
+        # Get the download dictionary from all the download files so far
+        download_dict = self.get_download_record()
+        # Counters
+        not_tried = 0
+        failures = 0
+        successes = 0
+        # Failed files list
+        failed_files = []
+        # Not tried files list
+        not_tried_files = []
+        # For each file in the dataset
+        for file in self.by_filename.keys():
+            # If the file is not in the download dictionary keys
+            if file not in download_dict.keys():
+                # Add to counter
+                not_tried += 1
+                # Add to list
+                not_tried_files.append(file)
+                # Go next
+                continue
+            # If the file was a success
+            if download_dict[file]:
+                # Add to counter
+                successes += 1
+            # Otherwise
+            else:
+                # Add to counter
+                failures += 1
+                # Add to list
+                failed_files.append(file)
+        # Print report
+        print(f'Of {not_tried + failures + successes} files (archive set {self.archive_set}, product {self.product}):')
+        print(f'{successes} were successfully downloaded.')
+        print(f'{failures} failed to download.')
+        print(f'{not_tried} have not been attempted.')
+        # If printing failures
+        if print_failed:
+            print(f'\nFiles that failed to download:')
+            for failed_file in failed_files:
+                print(failed_file)
+        # If printing not tried
+        if print_not_tried:
+            print(f'\nFiles that have not been attempted:')
+            for not_tried_file in not_tried_files:
+                print(not_tried_file)
+
 
 class LAADSFile:
 
