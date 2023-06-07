@@ -122,3 +122,9 @@ def get_year_doy_from_filename(filename):
     # Return the year and DOY
     return year, doy
 
+
+# Get the tile name from the filename
+def get_tilename_from_filename(filename):
+    # Split out and return filename
+    return filename.split('.')[2]
+

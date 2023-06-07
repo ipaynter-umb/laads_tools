@@ -539,6 +539,27 @@ class LAADSDataSet:
             for not_tried_file in not_tried_files:
                 print(not_tried_file)
 
+    # Get a list of all the tiles in the dataset
+    def get_tile_list(self):
+        # List for tile names
+        tile_list = []
+        # For each filename
+        for filename in self.by_filename.keys():
+            # Get the tile name
+            tilename = t_laads.get_tilename_from_filename(filename)
+            # If the tile name is not in the list
+            if tilename not in tile_list:
+                # Add it
+                tile_list.append(tilename)
+        # Return the list
+        return tile_list
+
+    # Get an ordered list of dates
+    def get_ordered_dates_list(self):
+        # Return ordered list of dates
+        return sorted(list(self.by_date.keys()))
+
+
 
 class LAADSFile:
 
