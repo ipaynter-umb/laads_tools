@@ -495,7 +495,86 @@ def main():
                     of.write(f'{dataset.id},{dataset.name},Dataset\n')
 
 
+def alter_snapshot(snapshot_path, output_path):
+
+    with open(snapshot_path, mode='r') as f:
+        snap_dict = json.load(f)
+
+    for node in snap_dict['rawGraph']['nodes']:
+        if node['label'] == "Fire":
+            snap_dict['overrides'][node['node_id']] = {"color": '#eb8334',
+                                                       "shape": "triangle"}
+            snap_dict['positions'][node['node_id']][0] *= 2
+            snap_dict['positions'][node['node_id']][1] *= 2
+            snap_dict['pinnedNodes'].append(node['node_id'])
+
+        elif node['label'] == "Ice":
+            snap_dict['overrides'][node['node_id']] = {"color": '#03e2ff',
+                                                       "shape": "square"}
+            snap_dict['positions'][node['node_id']][0] *= 1.8
+            snap_dict['positions'][node['node_id']][1] *= 1.8
+            snap_dict['pinnedNodes'].append(node['node_id'])
+
+        elif node['type'] == "Provider":
+
+            if node['label'] == 'NOAA_NCEI':
+                snap_dict['overrides'][node['node_id']] = {"color": '#db0000',
+                                                           "shape": "hexagon",
+                                                           "label": "NOAA NCEI"}  # Found that I have to override.
+                snap_dict['nodesShowingLabels'].append(node['node_id'])
+            else:
+                snap_dict['overrides'][node['node_id']] = {"color": '#4ca14e'}
+            snap_dict['positions'][node['node_id']][0] *= 2
+            snap_dict['positions'][node['node_id']][1] *= 2
+            snap_dict['pinnedNodes'].append(node['node_id'])
+
+        elif node['type'] == "Agency":
+            snap_dict['overrides'][node['node_id']] = {"color": '#1303ff',
+                                                       "shape": "hexagon",
+                                                       "size": 20,
+                                                       "label": "NASA"}  # Found that I have to override.
+            snap_dict['positions'][node['node_id']][0] = 0
+            snap_dict['positions'][node['node_id']][1] = 0
+            snap_dict['nodesShowingLabels'].append(node['node_id'])
+
+        snap_dict['global']['labelBy'] = 'label'
+
+    with open(outpath, mode='w') as of:
+        json.dump(snap_dict, of)
+
+# Dictionary
+#   "rawGraph:"
+#      "nodes": list: each entry a dict: "node_id", "label", "type", "collections", "id", "degree", "pagerank", "isHidden"(bool)
+#      "edges": list: each entry a dict: "source_id", "target_id"
+#   "nodesShowingLabels": list of labels [str, str, str]
+#   "overrides": dict, str(ID) as key: "color": #000, "size": int, "label": str, "shape": "hexagon"
+#   "positions": dict: str(ID) as key: [float x, float y]
+#   "pinnedNodes": list <>??
+#   "metadata": dict:
+#       "snapshotName": str
+#       "fullNodes": int
+#       "fullEgdes": int
+#       "nodeProperties": [list of keys from "nodes" dicts]
+#       "nodeComputed":["pagerank", "degree"]
+#       "edgeProperties": [list of keys from "edges" dicts]
+#   "global": dict:
+#       "colorBy": key from "nodes" dicts
+#       "color": dict: "scale":"Linear Scale","from":#hex,"to":#hex
+#       "sizeBy": key from "nodes" dicts
+#       "size": dict: "min": int, "max": int, "scale": "Linear Scale" (Log?)
+#       "labelBy": key from "nodes" dicts
+#       "shape": str e.g. "circle"
+#       "labelSize": int
+#       "labelLength": int
+#       "egdes": dict: "color":#hex
+
+
 if __name__ == '__main__':
 
-    get_fire_and_ice_network()
+    target = Path(r"F:\UMB\laads_tools\outputs\fire_ice_snapshot.json")
+    outpath = Path(r"F:\UMB\laads_tools\outputs\fire_ice_snapshot_color.json")
+
+    alter_snapshot(target, outpath)
+
+    #get_fire_and_ice_network()
     #main_with_tag_scrape()
