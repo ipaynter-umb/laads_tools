@@ -8,3 +8,4 @@ support/
 outputs/
 inputs/
 logs/
+_netrc*

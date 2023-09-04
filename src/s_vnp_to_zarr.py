@@ -1,5 +1,4 @@
 import logging
-
 import zarr
 import h5py
 import numpy as np

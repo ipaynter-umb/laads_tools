@@ -560,7 +560,6 @@ class LAADSDataSet:
         return sorted(list(self.by_date.keys()))
 
 
-
 class LAADSFile:
 
     def __init__(self, file_name, date, hash):
