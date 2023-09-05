@@ -127,6 +127,7 @@ def vnp_to_zarr_mp(work_packet):
                     row_ind, col_ind]
                 zarr_root[f'{tilename}/{row_ind}']['Sensor Azimuth'][arr_ind, col_ind] = a1_azangle_array[
                     row_ind, col_ind]
+        logging.info(f'Finished row {row_ind} for {a2_name} in {np.around(time() - stime, decimals=2)} seconds.')
 
     logging.info(f'Transferred NTL from {a2_name} in {np.around(time() - ctime, decimals=2)} seconds.')
 
@@ -244,8 +245,7 @@ if __name__ == '__main__':
     output_path = Path(environ['outputs_dir'])
 
     list_of_work = vnp_to_zarr_mp_setup(a1_inputs_path, a2_inputs_path, output_path, zarr_name)
-    print(list_of_work)
-    exit()
+
     # Submit list of work to multiprocessor
     multiprocess_vnp_to_zarr(vnp_to_zarr_mp, list_of_work, max_workers=30)
 
