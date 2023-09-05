@@ -119,15 +119,15 @@ def vnp_to_zarr_mp(work_packet):
             if ntl != 65535:
                 # Get the array index for the date
                 arr_ind = list(zarr_root['Date']).index(date_obj.strftime('%Y%m%d'))
-                zarr_root[f'{tilename}/{row_ind}']['DNB_BRDF-Corrected_NTL'][arr_ind, col_ind] = ntl
-                zarr_root[f'{tilename}/{row_ind}']['QF_Cloud_Mask'][arr_ind, col_ind] = a2_cloudqf_array[row_ind, col_ind]
-                zarr_root[f'{tilename}/{row_ind}']['Mandatory_Quality_Flag'][arr_ind, col_ind] = a2_qf_array[
+                zarr_root[f'{tilename}/{row_ind}/DNB_BRDF-Corrected_NTL'][arr_ind, col_ind] = ntl
+                zarr_root[f'{tilename}/{row_ind}/QF_Cloud_Mask'][arr_ind, col_ind] = a2_cloudqf_array[row_ind, col_ind]
+                zarr_root[f'{tilename}/{row_ind}/Mandatory_Quality_Flag'][arr_ind, col_ind] = a2_qf_array[
                     row_ind, col_ind]
-                zarr_root[f'{tilename}/{row_ind}']['Sensor_Zenith'][arr_ind, col_ind] = a1_zenangle_array[
+                zarr_root[f'{tilename}/{row_ind}/Sensor_Zenith'][arr_ind, col_ind] = a1_zenangle_array[
                     row_ind, col_ind]
-                zarr_root[f'{tilename}/{row_ind}']['Sensor Azimuth'][arr_ind, col_ind] = a1_azangle_array[
+                zarr_root[f'{tilename}/{row_ind}/Sensor_Azimuth'][arr_ind, col_ind] = a1_azangle_array[
                     row_ind, col_ind]
-        logging.info(f'Finished row {row_ind} for {a2_name} in {np.around(time() - stime, decimals=2)} seconds.')
+        #logging.info(f'Finished row {row_ind} for {a2_name} in {np.around(time() - stime, decimals=2)} seconds.')
 
     logging.info(f'Transferred NTL from {a2_name} in {np.around(time() - ctime, decimals=2)} seconds.')
 
