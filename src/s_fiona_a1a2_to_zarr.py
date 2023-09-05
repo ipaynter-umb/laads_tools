@@ -30,8 +30,8 @@ def vnp_to_zarr_mp(work_packet):
     name_dict = work_packet[0]
     a2_name = name_dict['VNP46A2']
     a1_name = name_dict['VNP46A1']
-
-    dir_path = work_packet[1]
+    a1_path = work_packet[1][0]
+    a2_path = work_packet[1][1]
     store_path = work_packet[2]
 
     # Reference the DirectoryStore
@@ -49,8 +49,8 @@ def vnp_to_zarr_mp(work_packet):
     zarr_root[tilename].attrs['Min Col'] = col_min
 
     # Open the H5 files
-    a2_h5file = h5py.File(Path(dir_path, a2_name))
-    a1_h5file = h5py.File(Path(dir_path, a1_name))
+    a2_h5file = h5py.File(Path(a2_path, a2_name))
+    a1_h5file = h5py.File(Path(a1_path, a1_name))
     # Get the array of the nighttime lights
     a2_ntl_array = np.array(a2_h5file['HDFEOS']['GRIDS']['VNP_Grid_DNB']['Data Fields'][
                                 'DNB_BRDF-Corrected_NTL'][row_min:row_max, col_min:col_max])
@@ -140,7 +140,7 @@ def multiprocess_vnp_to_zarr(mp_func, work, max_workers=3):
 
 
 # Setup vnp to zarr multiprocessing
-def vnp_to_zarr_mp_setup(dir_path, output_path, zarr_name):
+def vnp_to_zarr_mp_setup(a1_path, a2_path, output_path, zarr_name):
     # List of work
     list_of_work = []
     # Dict of files
@@ -151,21 +151,19 @@ def vnp_to_zarr_mp_setup(dir_path, output_path, zarr_name):
     # Count files
     file_count = 0
     # Walk the support file directory
-    for root, dirs, files in walk(dir_path):
+    for root, dirs, files in walk(a2_path):
         # For each file name
         for name in files:
             # If it looks like a VNP46A2 product file
-            if 'VNP46A' in name:
+            if 'VNP46A2' in name:
                 # Get components of the filename
                 date_obj = t_vnp46a.get_components_from_filename(name,
                                                                  date_obj=True)
                 # If the date is not in the dictionary yet
                 if date_obj not in dict_of_files.keys():
                     dict_of_files[date_obj] = {}
-                if 'VNP46A1' in name:
-                    dict_of_files[date_obj]['VNP46A1'] = name
                 # If it's a VNP46A2 file
-                elif 'VNP46A2' in name:
+                if 'VNP46A2' in name:
                     dict_of_files[date_obj]['VNP46A2'] = name
                     # Update start and end dates
                     if not start_date:
@@ -178,11 +176,23 @@ def vnp_to_zarr_mp_setup(dir_path, output_path, zarr_name):
                         end_date = date_obj
                     # Increment file count
                     file_count += 1
+    # Walk the support file directory
+    for root, dirs, files in walk(a1_path):
+        # For each file name
+        for name in files:
+            # If it looks like a VNP46A1 product file
+            if 'VNP46A1' in name:
+                # Get components of the filename
+                date_obj = t_vnp46a.get_components_from_filename(name,
+                                                                 date_obj=True)
+                # If the date is in the dictionary
+                if date_obj in dict_of_files.keys():
+                    dict_of_files[date_obj]['VNP46A1'] = name
     # Walk the dictionary of files
     for dict_date in dict_of_files.keys():
         if len(dict_of_files[dict_date]) == 2:
             # Add file names to work
-            list_of_work.append([dict_of_files[dict_date], dir_path])
+            list_of_work.append([dict_of_files[dict_date], [a1_path, a2_path]])
     stime = time()
     # Assemble Directory Store path
     store_path = Path(output_path, zarr_name)
@@ -218,7 +228,7 @@ def vnp_to_zarr_mp_setup(dir_path, output_path, zarr_name):
     return list_of_work
 
 
-# Create zarr store from directory of VNP46A2 files
+# Create zarr store from directory of VNP46A1 and VNP46A2 files
 def create_zarr_from_vnp_dir(dir_path, output_path, zarr_name):
     # Start and end dates
     start_date = None
@@ -330,10 +340,11 @@ if __name__ == '__main__':
 
     stime = time()
 
-    dir_path = Path(environ['inputs_dir'], 'PuertoRicoVNP46')
+    a1_inputs_path = Path(environ['inputs_dir'], 'fionaA1')
+    a2_inputs_path = Path(environ['inputs_dir'], 'fiona')
     output_path = Path(environ['outputs_dir'])
 
-    list_of_work = vnp_to_zarr_mp_setup(dir_path, output_path, zarr_name)
+    list_of_work = vnp_to_zarr_mp_setup(a1_inputs_path, a2_inputs_path, output_path, zarr_name)
 
     # Submit list of work to multiprocessor
     multiprocess_vnp_to_zarr(vnp_to_zarr_mp, list_of_work, max_workers=30)
