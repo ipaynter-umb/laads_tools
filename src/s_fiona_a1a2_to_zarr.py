@@ -101,16 +101,16 @@ def vnp_to_zarr_mp(work_packet):
                                                      overwrite=False,
                                                      shape=(zarr_root['Date'].shape[0], a2_ntl_array.shape[1]),
                                                      chunks=(zarr_root['Date'].shape[0], 10),
-                                                     dtype='uint16',
-                                                     fill_value=65535,
+                                                     dtype='int16',
+                                                     fill_value=-32768,
                                                      write_empty_chunks=False
                                                      )
         zarr_root[tilename][row_ind].require_dataset('Sensor_Azimuth',
                                                      overwrite=False,
                                                      shape=(zarr_root['Date'].shape[0], a2_ntl_array.shape[1]),
                                                      chunks=(zarr_root['Date'].shape[0], 10),
-                                                     dtype='uint16',
-                                                     fill_value=65535,
+                                                     dtype='int16',
+                                                     fill_value=-32768,
                                                      write_empty_chunks=False
                                                      )
         # For each ntl value in the row
